@@ -314,10 +314,10 @@ window.APP_DATA = {
     {
       no: 'PART 2', time: '웹앱 · 자동화 실전', title: '웹앱과 업무 자동화',
       items: [
-        { text: 'STEP 2 웹앱 만들기: 감정일기 · 소감 나눔함 · 실행 계정/접근 범위', go: 'container/c-emotion' },
+        { text: 'STEP 2 웹앱 만들기: 감정일기 · 소감 나눔함 · 연수 자동 등록부 · 실행 계정/접근 범위', go: 'container/c-emotion' },
         { text: '평가 기록 남기기: 게임형 문제 → 결과가 시트에 저장', go: 'container/c-game' },
-        { text: 'STEP 3 연수 자동 등록부 → STEP 4 메일 자동 발송', go: 'container/c-register' },
-        { text: 'STEP 5 AppSheet 실습 및 Apps Script와 비교 → 작품 공유', go: 'appsheet' }
+        { text: 'STEP 3 메일 자동 발송: 구글폼 제출 → 설치형 트리거', go: 'container/c-mail' },
+        { text: 'STEP 4 AppSheet 실습 및 Apps Script와 비교 → 작품 공유', go: 'appsheet' }
       ]
     }
   ],
@@ -422,7 +422,7 @@ window.APP_DATA = {
 5. 끝나면 교사용 편집 주소와 학생용 응답 주소를 실행 로그에 구분해서 출력`,
       files: [{ name: 'Code.gs', src: 'afterSchoolForm.gs' }],
       result: '드라이브에 구역 2개 · 개인정보 동의 문항이 들어간 설문지가 생기고, [배포용] 주소로 들어가면 바로 응답할 수 있습니다.',
-      tips: ['설문지 [응답] 탭 → ‘Sheets에 연결’을 누르면 응답이 시트에 쌓입니다. 이 시트는 STEP 4 메일 자동 발송 실습과 같은 구조입니다.']
+      tips: ['설문지 [응답] 탭 → ‘Sheets에 연결’을 누르면 응답이 시트에 쌓입니다. 이 시트는 STEP 3 메일 자동 발송 실습과 같은 구조입니다.']
     },
     {
       id: 's-calendar', title: '구글 캘린더: 학사 일정 일괄 등록', service: 'Calendar',
@@ -466,8 +466,7 @@ window.APP_DATA = {
   containerGroups: [
     { id: 'step1', label: 'STEP 1', title: '구조 이해하기', desc: '시트 데이터를 읽고(getValues) 쓰고(setValues), 메뉴(onOpen)로 실행하는 기본 구조' },
     { id: 'step2', label: 'STEP 2', title: '웹앱 형태로 만들기', desc: 'Code.gs(서버) + index.html(화면)으로 만든 웹앱을 배포하고 결과를 시트에 기록' },
-    { id: 'step3', label: 'STEP 3', title: '연수 자동 등록부', desc: '이름 입력 → 손글씨 서명 → 시트에 이미지로 저장' },
-    { id: 'step4', label: 'STEP 4', title: '메일 자동 발송', desc: '구글폼 제출 → 설치형 트리거 → 확인 메일 자동 발송' },
+    { id: 'step4', label: 'STEP 3', title: '메일 자동 발송', desc: '구글폼 제출 → 설치형 트리거 → 확인 메일 자동 발송' },
     { id: 'more', label: '심화', title: '더 해보기', desc: '성적 관리 메뉴, Gemini API 연동' }
   ],
 
@@ -638,6 +637,59 @@ index.html은 일기장처럼 꾸며 줘.
       tips: ['같은 틀로 ‘수업 질문함’, ‘출구 카드(Exit Ticket)’, ‘건의함’을 바로 만들 수 있습니다.']
     },
     {
+      id: 'c-register', group: 'step2', title: '연수 자동 등록부 (출석 서명)', service: 'Web App',
+      level: '보통', time: '20분',
+      summary: '이름을 입력하고 손가락이나 마우스로 서명하면, 시트에 성함 · 일시 · 서명 이미지가 자동으로 기록됩니다.',
+      concepts: [
+        '`<canvas>`에 그린 서명을 PNG 이미지(`toDataURL`)로 바꿔 서버로 보냅니다.',
+        '`SpreadsheetApp.newCellImage()`로 서명 이미지를 셀 안에 넣습니다.',
+        '`createTemplateFromFile()` + `<?= ?>`로 연수 이름을 화면에 끼워 넣습니다.'
+      ],
+      links: [
+        { kind: 'copy', label: '실습용 서식 시트 복사', url: 'https://docs.google.com/spreadsheets/d/1ToUl05Mnjh_jvMS8SYtkndtSrR2ZE6VceSA3ZgFlTdA/copy' },
+        { kind: 'app', label: '완성 웹앱 체험', url: 'https://script.google.com/macros/s/AKfycbxfudTrVqaDv6Fxlyex9zKK5rQ4O7FIKLHe0WAoWqE6kWvz9PRtRLExJgKbnnRzmW4OHA/exec' }
+      ],
+      steps: [
+        '[실습용 서식 시트 복사] → ‘사본 만들기’ (성함 · 일시 · 서명 머리글만 있는 빈 시트)',
+        '확장 프로그램 → Apps Script → `Code.gs`와 `index.html`(＋ → HTML → index)에 코드를 붙여 넣고 저장',
+        '`Code.gs` 맨 위 `TRAINING_NAME`을 우리 연수 이름으로 바꿉니다.',
+        '배포 → 새 배포 → 웹 앱 (실행: 나 / 액세스: 모든 사용자) → 권한 승인',
+        '웹 앱 URL을 휴대폰으로 열어 이름 입력 → 서명 → 등록하기 → 시트에서 서명 이미지 확인'
+      ],
+      prompt:
+`구글 Apps Script 웹앱으로 '연수 출석 서명부'를 만들어 줘. code.gs와 index.html 두 파일로 나눠 줘.
+
+[시트 구조]
+- 탭 '서명부': A 번호, B 이름, C 소속, D 서명일시, E 서명 이미지, F 서명 파일 링크 (1행 제목행)
+
+[화면(index.html)]
+1. 상단 제목 "[연수명] 출석 서명", 아래에 날짜를 작게 표시.
+2. 이름, 소속 입력칸.
+3. 손가락이나 마우스로 서명할 수 있는 서명 패드(흰 바탕, 검은 펜, 굵기 3px).
+   태블릿·휴대폰 터치에서도 화면이 스크롤되지 않고 서명이 잘 되게 해 줘.
+4. "다시 쓰기" 버튼과 "제출" 버튼.
+5. 이름이 비었거나 서명을 안 했으면 제출되지 않고 안내 메시지를 보여 줘.
+6. 제출하면 "서명이 완료되었습니다" 화면을 보여 주고, 3초 뒤 처음 화면으로 돌아가 다음 사람이 바로 서명할 수 있게 해 줘.
+7. 휴대폰에서도 보기 좋게, 글씨와 버튼은 크게.
+
+[동작(code.gs)]
+1. 서명은 PNG 이미지로 받아서 내 드라이브의 '[연수명] 서명' 폴더에 "이름_yyyyMMdd_HHmm.png"로 저장해 줘. 폴더가 없으면 만들어 줘.
+2. 시트에 번호(자동 증가), 이름, 소속, 서명일시("yyyy-MM-dd HH:mm:ss")를 기록해 줘.
+3. E열 셀 안에 서명 이미지가 직접 보이도록 넣어 줘. (SpreadsheetApp.newCellImage 사용)
+4. F열에는 드라이브 파일 링크를 넣어 줘.
+5. 여러 명이 동시에 제출해도 섞이지 않게 LockService를 써 줘.
+
+웹앱 배포 방법(실행 사용자: 나, 액세스 권한: 모든 사용자)도 단계별로 알려 줘.
+코딩을 모르는 사람도 이해할 수 있게 한국어 주석을 달아 줘.`,
+      codeNote: '아래 코드는 이름과 서명을 한 화면에서 받는 입장권 디자인으로, 실습용 시트와 같은 3열 구조(성함 · 일시 · 서명)입니다. 위 프롬프트는 드라이브 저장 · 소속 · 번호까지 넣은 확장 버전이니, Gemini로 만든 결과와 비교해 보세요.',
+      files: [
+        { name: 'Code.gs', src: 'register_code.gs' },
+        { name: 'index.html', src: 'register_index.html' }
+      ],
+      result: '서명할 때마다 시트에 성함 · 일시가 기록되고 C열 셀 안에 서명 이미지가 들어갑니다. 화면에는 “○번째로 출석 등록되었습니다”가 3초 동안 뜬 뒤 다음 사람을 위해 비워집니다.',
+      tips: ['연수장 입구에 태블릿 한 대를 두고 이 웹앱을 띄워 두면 종이 등록부 없이 출석을 받을 수 있습니다.']
+    },
+    {
       id: 'c-game', group: 'step2', title: '게임형 문제 → 평가 기록 남기기', service: 'Web App',
       level: '도전', time: '20분',
       summary: '시트에 문제와 정답을 적으면 게임형 퀴즈 웹앱이 되고, 학생의 점수가 ‘결과’ 시트에 자동으로 저장됩니다.',
@@ -771,59 +823,6 @@ index.html은 일기장처럼 꾸며 줘.
 웹앱 배포 방법(실행 사용자: 나, 액세스: 같은 도메인 사용자)도 단계별로 알려 줘. 한국어 주석을 달아 줘.`,
       result: '장소와 날짜를 고르면 남은 교시만 예약할 수 있고, 예약 내용이 ‘예약목록’ 시트에 쌓입니다.',
       tips: ['개인 gmail 계정에는 ‘같은 도메인 사용자’ 옵션이 없습니다. 개인 계정으로 실습할 때는 ‘Google 계정이 있는 모든 사용자’를 고르세요.']
-    },
-    {
-      id: 'c-register', group: 'step3', title: '연수 자동 등록부 (출석 서명)', service: 'Web App',
-      level: '보통', time: '20분',
-      summary: '이름을 입력하고 손가락이나 마우스로 서명하면, 시트에 성함 · 일시 · 서명 이미지가 자동으로 기록됩니다.',
-      concepts: [
-        '`<canvas>`에 그린 서명을 PNG 이미지(`toDataURL`)로 바꿔 서버로 보냅니다.',
-        '`SpreadsheetApp.newCellImage()`로 서명 이미지를 셀 안에 넣습니다.',
-        '`createTemplateFromFile()` + `<?= ?>`로 연수 이름을 화면에 끼워 넣습니다.'
-      ],
-      links: [
-        { kind: 'done', label: '완성본 시트 복사(코드 포함)', url: 'https://docs.google.com/spreadsheets/d/1QXkkfIsDiNHrt3GpoNQ-1LcbGkH_VTojaDIPMYL2f1I/copy?usp=sharing' },
-        { kind: 'app', label: '완성 웹앱 체험', url: 'https://script.google.com/macros/s/AKfycbxfudTrVqaDv6Fxlyex9zKK5rQ4O7FIKLHe0WAoWqE6kWvz9PRtRLExJgKbnnRzmW4OHA/exec' }
-      ],
-      steps: [
-        '새 스프레드시트(`sheet.new`)를 만들거나 [완성본 시트 복사]로 사본을 만듭니다.',
-        '확장 프로그램 → Apps Script → `Code.gs`와 `index.html`(＋ → HTML → index)에 코드를 붙여 넣고 저장',
-        '`Code.gs` 맨 위 `TRAINING_NAME`을 우리 연수 이름으로 바꿉니다.',
-        '배포 → 새 배포 → 웹 앱 (실행: 나 / 액세스: 모든 사용자) → 권한 승인',
-        '웹 앱 URL을 휴대폰으로 열어 이름 입력 → 서명 → 등록하기 → 시트에서 서명 이미지 확인'
-      ],
-      prompt:
-`구글 Apps Script 웹앱으로 '연수 출석 서명부'를 만들어 줘. code.gs와 index.html 두 파일로 나눠 줘.
-
-[시트 구조]
-- 탭 '서명부': A 번호, B 이름, C 소속, D 서명일시, E 서명 이미지, F 서명 파일 링크 (1행 제목행)
-
-[화면(index.html)]
-1. 상단 제목 "[연수명] 출석 서명", 아래에 날짜를 작게 표시.
-2. 이름, 소속 입력칸.
-3. 손가락이나 마우스로 서명할 수 있는 서명 패드(흰 바탕, 검은 펜, 굵기 3px).
-   태블릿·휴대폰 터치에서도 화면이 스크롤되지 않고 서명이 잘 되게 해 줘.
-4. "다시 쓰기" 버튼과 "제출" 버튼.
-5. 이름이 비었거나 서명을 안 했으면 제출되지 않고 안내 메시지를 보여 줘.
-6. 제출하면 "서명이 완료되었습니다" 화면을 보여 주고, 3초 뒤 처음 화면으로 돌아가 다음 사람이 바로 서명할 수 있게 해 줘.
-7. 휴대폰에서도 보기 좋게, 글씨와 버튼은 크게.
-
-[동작(code.gs)]
-1. 서명은 PNG 이미지로 받아서 내 드라이브의 '[연수명] 서명' 폴더에 "이름_yyyyMMdd_HHmm.png"로 저장해 줘. 폴더가 없으면 만들어 줘.
-2. 시트에 번호(자동 증가), 이름, 소속, 서명일시("yyyy-MM-dd HH:mm:ss")를 기록해 줘.
-3. E열 셀 안에 서명 이미지가 직접 보이도록 넣어 줘. (SpreadsheetApp.newCellImage 사용)
-4. F열에는 드라이브 파일 링크를 넣어 줘.
-5. 여러 명이 동시에 제출해도 섞이지 않게 LockService를 써 줘.
-
-웹앱 배포 방법(실행 사용자: 나, 액세스 권한: 모든 사용자)도 단계별로 알려 줘.
-코딩을 모르는 사람도 이해할 수 있게 한국어 주석을 달아 줘.`,
-      codeNote: '아래 코드는 이름과 서명을 한 화면에서 받는 입장권 디자인으로, 완성본 시트와 같은 3열 구조(성함 · 일시 · 서명)입니다. 위 프롬프트는 드라이브 저장 · 소속 · 번호까지 넣은 확장 버전이니, Gemini로 만든 결과와 비교해 보세요.',
-      files: [
-        { name: 'Code.gs', src: 'register_code.gs' },
-        { name: 'index.html', src: 'register_index.html' }
-      ],
-      result: '서명할 때마다 시트에 성함 · 일시가 기록되고 C열 셀 안에 서명 이미지가 들어갑니다. 화면에는 “○번째로 출석 등록되었습니다”가 3초 동안 뜬 뒤 다음 사람을 위해 비워집니다.',
-      tips: ['연수장 입구에 태블릿 한 대를 두고 이 웹앱을 띄워 두면 종이 등록부 없이 출석을 받을 수 있습니다.']
     },
     {
       id: 'c-mail', group: 'step4', title: '학부모·연수 신청 확인 메일 자동 발송', service: 'Gmail',
@@ -977,7 +976,7 @@ index.html은 일기장처럼 꾸며 줘.
         { title: '분수 나눗셈 슈팅 게임', note: 'Gemini 제작', url: 'https://script.google.com/macros/s/AKfycbzO5HGziGDv_QMAQ6I-YbbpjbEDCBAyAMgTzht6L1VMMyoPebk2HXndLjBRt5u9HkMG/exec' },
         { title: '역사 산성비', note: '시트 문제 → 타자 게임 · 점수 기록', url: 'https://script.google.com/macros/s/AKfycbyCHmo-A5qTO6iNNPnCGb4Pg1aBSqX-i6kZ880jJwEOf7C-HH5U8Tf-Wc8xuq43dj7G/exec' },
         { title: '오늘의 감정 일기', note: 'STEP 2 완성본', url: 'https://script.google.com/macros/s/AKfycbz-ZW0PgK6H1rb2ocwf-jB_6gJD99F7KsPIqXaBclAGLO5a-hFxL95iS-cDFQ0I9CtQ/exec' },
-        { title: '연수 출석 서명부', note: 'STEP 3 완성본', url: 'https://script.google.com/macros/s/AKfycbxfudTrVqaDv6Fxlyex9zKK5rQ4O7FIKLHe0WAoWqE6kWvz9PRtRLExJgKbnnRzmW4OHA/exec' },
+        { title: '연수 출석 서명부', note: 'STEP 2 완성본', url: 'https://script.google.com/macros/s/AKfycbxfudTrVqaDv6Fxlyex9zKK5rQ4O7FIKLHe0WAoWqE6kWvz9PRtRLExJgKbnnRzmW4OHA/exec' },
         { title: '학교 급식 안내', note: '공공 API 활용 웹앱', url: 'https://bisanmeal.vercel.app/' }
       ]
     },
@@ -988,12 +987,12 @@ index.html은 일기장처럼 꾸며 줘.
         { title: '연수 수료자 명단 (완성본)', note: 'STEP 1', url: 'https://docs.google.com/spreadsheets/d/1TJEH9VNbujedlNt6bxwTDQHeSRMv4NPB-FdpYtTqbTM/copy?usp=sharing' },
         { title: '연수 소감 나눔함 (완성본)', note: 'STEP 2', url: 'https://docs.google.com/spreadsheets/d/18q9ck77W0CGZq2yWMie_4ECy90qzY9Cn7ev0kxpV3Bs/copy?usp=sharing' },
         { title: '게임형 문제 생성기', note: 'STEP 2 · 평가 기록', url: 'https://docs.google.com/spreadsheets/d/1XSGy9ZVLY7Vu_nMKlF126cnIUZb99l2ihIEp65Kwv5I/copy?usp=sharing' },
-        { title: '연수 자동 등록부 (완성본)', note: 'STEP 3', url: 'https://docs.google.com/spreadsheets/d/1QXkkfIsDiNHrt3GpoNQ-1LcbGkH_VTojaDIPMYL2f1I/copy?usp=sharing' },
-        { title: 'AI 활용 연수 신청 (구글폼)', note: 'STEP 4', url: 'https://docs.google.com/forms/d/1kj1vgeB09HvyCSQgdTrw1TlYZXnJixhWcJAMHLXImsY/copy' },
+        { title: '연수 자동 등록부 (완성본)', note: 'STEP 2', url: 'https://docs.google.com/spreadsheets/d/1QXkkfIsDiNHrt3GpoNQ-1LcbGkH_VTojaDIPMYL2f1I/copy?usp=sharing' },
+        { title: 'AI 활용 연수 신청 (구글폼)', note: 'STEP 3', url: 'https://docs.google.com/forms/d/1kj1vgeB09HvyCSQgdTrw1TlYZXnJixhWcJAMHLXImsY/copy' },
         { title: '자율활동 내용 생성', note: 'Gemini API 키 필요', url: 'https://docs.google.com/spreadsheets/d/1YcidbxCxRXicwbmlcXXiUOVFjyezi13GYPQHSBKfJQo/copy?usp=sharing' },
         { title: '행동특성 생성', note: 'Gemini API 키 필요', url: 'https://docs.google.com/spreadsheets/d/1O8N-rke05QIAFVVhmzFSiNaZFvi-XUOhnz4LtXQGLdM/copy?usp=sharing' },
         { title: '성적 관리 실습 시트', note: '심화 · 1~3반 가상 점수', url: 'https://docs.google.com/spreadsheets/d/1XFf4-HE5yBxVOMY2bfq2Li2eNAlGwO4sMb1pm1keupk/copy' },
-        { title: '컨설팅 방문 관리', note: 'STEP 5 AppSheet', url: 'https://docs.google.com/spreadsheets/d/1evkfSJXG1RL1NYe2lzJODGUYsOiGSNv6CYU1KEeGgJk/copy?usp=sharing' }
+        { title: '컨설팅 방문 관리', note: 'STEP 4 AppSheet', url: 'https://docs.google.com/spreadsheets/d/1evkfSJXG1RL1NYe2lzJODGUYsOiGSNv6CYU1KEeGgJk/copy?usp=sharing' }
       ]
     },
     {
@@ -1146,7 +1145,7 @@ window.CODE_FILES = {"gifted.gs":"/**\n * 2026 영재 이수자 명단 → 학�
           <table>
             <tr><th style="width:20%">종류</th><th style="width:30%">예</th><th>특징</th></tr>
             <tr><td><span class="badge b-blue">단순 트리거</span></td><td><code>onOpen()</code>, <code>onEdit(e)</code></td><td>함수 이름만 맞추면 자동 실행. 메일 발송처럼 권한이 필요한 작업은 할 수 없습니다. (STEP 1 메뉴 만들기)</td></tr>
-            <tr><td><span class="badge b-red">설치형 트리거</span></td><td>양식 제출 시, 수정 시, 변경 시</td><td>왼쪽 ⏰ 트리거 메뉴에서 등록. 내 권한으로 실행되어 메일 발송이 가능합니다. (STEP 4 메일 자동 발송)</td></tr>
+            <tr><td><span class="badge b-red">설치형 트리거</span></td><td>양식 제출 시, 수정 시, 변경 시</td><td>왼쪽 ⏰ 트리거 메뉴에서 등록. 내 권한으로 실행되어 메일 발송이 가능합니다. (STEP 3 메일 자동 발송)</td></tr>
             <tr><td><span class="badge b-green">시간 기반</span></td><td>매일 07:30, 매주 월요일</td><td>정해진 시각 · 간격마다 실행. 출결 마감 알림, 주간 보고서 등에 사용합니다.</td></tr>
           </table>
         </div>
@@ -1310,7 +1309,7 @@ window.CODE_FILES = {"gifted.gs":"/**\n * 2026 영재 이수자 명단 → 학�
           ${html}
           <div class="pager">
             ${prev ? `<a class="btn" href="#${roomKey}/${prev.id}"><span><small>이전</small>← ${esc(prev.title)}</span></a>` : '<span></span>'}
-            ${next ? `<a class="btn" href="#${roomKey}/${next.id}" style="text-align:right"><span><small>다음</small>${esc(next.title)} →</span></a>` : (roomKey === 'standalone' ? `<a class="btn primary" href="#container">컨테이너형 실습으로 →</a>` : `<a class="btn primary" href="#appsheet">STEP 5 AppSheet로 →</a>`)}
+            ${next ? `<a class="btn" href="#${roomKey}/${next.id}" style="text-align:right"><span><small>다음</small>${esc(next.title)} →</span></a>` : (roomKey === 'standalone' ? `<a class="btn primary" href="#container">컨테이너형 실습으로 →</a>` : `<a class="btn primary" href="#appsheet">STEP 4 AppSheet로 →</a>`)}
           </div>
         </article>
       </div>`;
@@ -1349,7 +1348,7 @@ window.CODE_FILES = {"gifted.gs":"/**\n * 2026 영재 이수자 명단 → 학�
     const A = D.appsheet;
     $('#view-appsheet').innerHTML = `
       <div class="card hero">
-        <div class="kicker">STEP 5 · 노코드 앱 만들기</div>
+        <div class="kicker">STEP 4 · 노코드 앱 만들기</div>
         <h1>AppSheet로 컨설팅 방문 관리 앱 만들기</h1>
         <p class="lead">AppSheet는 구글 시트를 데이터로 삼아 <b>코드 없이</b> 휴대폰 앱을 만들어 주는 도구입니다. Apps Script와 같은 ‘시트 = 데이터베이스’ 구조를 다른 방식으로 만들어 보고 비교해 봅니다.</p>
         <div class="actions" style="margin-top:20px">
